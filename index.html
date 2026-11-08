@@ -1,0 +1,698 @@
+HTML
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>M.P.S.T Fleet Management</title>
+
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f1f3f9;color:#17234b;font-family:Tahoma,Arial,sans-serif}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer;border:0}
+header{background:#17234b;color:white;padding:18px 20px;display:flex;align-items:center;justify-content:space-between}
+.logo{font-size:23px;font-weight:bold;letter-spacing:2px}
+.sub{font-size:11px;color:#cbd2e8;margin-top:5px}
+main{max-width:1100px;margin:25px auto;padding:0 14px}
+.panel{background:white;border-radius:15px;padding:20px;margin-bottom:18px;box-shadow:0 4px 16px #17234b12}
+h2,h3{margin:0 0 15px}
+.muted{color:#7b849c;font-size:13px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.location,.vehicle,.role{background:white;border:1px solid #e0e4ef;border-radius:13px;padding:20px;text-align:right}
+.location{cursor:pointer}
+.location:hover,.vehicle:hover{border-color:#4169e1}
+.location strong{display:block;font-size:20px;margin-bottom:8px}
+.vehicle{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.vehicle b{font-size:19px}
+.vehicle small{display:block;color:#7b849c;margin-top:5px}
+.blue{background:#3264e9;color:white;padding:10px 20px;border-radius:8px}
+.dark{background:#17234b;color:white;padding:11px 18px;border-radius:8px}
+.green{background:#0c9d62;color:white;padding:10px 17px;border-radius:8px}
+.red{background:#e93650;color:white;padding:9px 14px;border-radius:8px}
+.gray{background:#e9edf5;color:#27365d;padding:10px 16px;border-radius:8px}
+.back{background:transparent;color:white;font-size:15px}
+.hidden{display:none!important}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:15px}
+.tab{padding:10px 16px;border-radius:8px;background:#e9edf5;color:#27365d}
+.tab.active{background:#17234b;color:white}
+.formgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+label{display:block;font-size:13px;font-weight:bold;margin-bottom:7px}
+input,textarea,select{width:100%;padding:12px;border:1px solid #d6dbea;border-radius:8px;background:white;color:#17234b;outline:none}
+textarea{min-height:45px;resize:vertical}
+.form-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:13px}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;background:white;min-width:650px}
+th{background:#17234b;color:white;padding:13px 10px}
+td{border:1px solid #dce1ed;padding:12px 10px;text-align:center}
+tr:nth-child(even) td{background:#fafbfe}
+.section-title{background:#17234b;color:white;padding:13px 16px;border-radius:9px 9px 0 0;margin-top:18px}
+.empty{text-align:center;color:#8991a5;padding:25px}
+.modal-bg{position:fixed;inset:0;background:#07112dcc;display:flex;align-items:center;justify-content:center;padding:18px;z-index:10}
+.modal{background:white;padding:24px;border-radius:15px;width:min(420px,100%)}
+.modal h3{margin-bottom:18px}
+.role{cursor:pointer;text-align:center}
+.role strong{font-size:20px;display:block;margin-bottom:8px}
+.warning{color:#d71935;background:#fff0f1;border:1px solid #f3b8c0;border-radius:10px;padding:18px 12px;text-align:center;font-weight:bold;line-height:1.9;margin-bottom:16px}
+.status{font-size:12px;margin-top:10px}
+@media(max-width:600px){
+ header{padding:15px}
+ .logo{font-size:19px}
+ main{margin:16px auto}
+ .panel{padding:14px}
+ .vehicle{padding:14px}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+ <div>
+  <div class="logo">M.P.S.T</div>
+  <div class="sub">FLEET MANAGEMENT SYSTEM</div>
+ </div>
+ <button class="back" onclick="goBack()">رجوع ↩</button>
+</header>
+
+<main>
+
+<section id="home">
+ <div class="panel">
+  <h2>إدارة أسطول السيارات</h2>
+  <div class="muted">اختار الموقع لعرض السيارات والمقطورات</div>
+ </div>
+
+ <div class="grid">
+  <div class="location" onclick="openLocation('borg')">
+   <strong>موقع برج العرب</strong>
+   <span class="muted">عرض السجلات والمركبات</span>
+  </div>
+
+  <div class="location" onclick="openLocation('razzaq')">
+   <strong>موقع الرزاق</strong>
+   <span class="muted">عرض السجلات والمركبات</span>
+  </div>
+ </div>
+</section>
+
+<section id="vehiclesPage" class="hidden">
+ <div class="panel">
+  <h2 id="locationTitle"></h2>
+
+  <div class="tabs">
+   <button class="tab active" onclick="showVehicleType('cars',this)">السيارات</button>
+   <button class="tab" onclick="showVehicleType('trailers',this)">المقطورات</button>
+  </div>
+
+  <div id="vehiclesList"></div>
+ </div>
+</section>
+
+<section id="recordsPage" class="hidden">
+ <div class="panel">
+  <h2 id="vehicleTitle"></h2>
+  <div class="muted" id="vehicleSubtitle"></div>
+  <div class="status" id="syncStatus">حالة الاتصال: غير متصل بقاعدة البيانات</div>
+ </div>
+
+ <div class="panel">
+
+  <div id="adminTools" class="hidden">
+   <h3>إضافة سجل جديد</h3>
+
+   <form id="recordForm">
+    <div class="formgrid">
+
+     <div>
+      <label>نوع السجل</label>
+      <select id="category" required>
+       <option value="التكاليف">التكاليف</option>
+       <option value="الصيانة">الصيانة</option>
+      </select>
+     </div>
+
+     <div>
+      <label>التاريخ</label>
+      <input type="date" id="date" required>
+     </div>
+
+     <div>
+      <label>نوع العملية</label>
+      <input id="kind" placeholder="اكتب نوع العملية" required>
+     </div>
+
+     <div>
+      <label>المبلغ (جنيه)</label>
+      <input type="number" id="amount" min="0" placeholder="المبلغ">
+     </div>
+
+     <div>
+      <label>البيان / التفاصيل</label>
+      <textarea id="details" placeholder="اكتب التفاصيل هنا"></textarea>
+     </div>
+
+    </div>
+
+    <div class="form-actions">
+     <button class="green" type="submit" id="saveBtn">＋ إضافة سجل</button>
+     <button class="gray hidden" type="button" id="cancelEdit" onclick="cancelEditing()">إلغاء التعديل</button>
+    </div>
+   </form>
+  </div>
+
+  <div id="recordsContainer"></div>
+  <div id="monitorEmpty" class="empty hidden">لا توجد سجلات مضافة حتى الآن.</div>
+ </div>
+</section>
+
+</main>
+
+<div id="modalBg" class="modal-bg hidden">
+ <div class="modal">
+  <h3 id="modalTitle">اختيار طريقة الدخول</h3>
+  <div id="modalContent"></div>
+
+  <div class="form-actions">
+   <button class="gray" onclick="closeModal()">إغلاق</button>
+  </div>
+ </div>
+</div>
+
+<script type="module">
+
+/*
+========================================
+ FIREBASE SETUP
+========================================
+
+بعد إنشاء مشروع Firebase:
+1. أضف Web App.
+2. ضع إعدادات firebaseConfig.
+3. فعّل Firestore Database.
+4. فعّل Firebase Authentication.
+5. أنشئ مستخدمين للإدارة والمراقبة.
+6. اضبط صلاحيات Firestore بحيث الإدارة فقط تكتب،
+   والمراقبة تقرأ فقط.
+
+لا تضع كلمة مرور Firebase أو مفاتيح حسابات خاصة هنا.
+*/
+
+import { initializeApp } from
+"https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+
+import {
+ getFirestore,
+ collection,
+ doc,
+ setDoc,
+ deleteDoc,
+ onSnapshot
+} from
+"https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+import {
+ getAuth,
+ signInWithEmailAndPassword,
+ signOut
+} from
+"https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+
+
+const firebaseConfig = {
+ apiKey: "YOUR_API_KEY",
+ authDomain: "YOUR_PROJECT.firebaseapp.com",
+ projectId: "YOUR_PROJECT_ID",
+ storageBucket: "YOUR_PROJECT.appspot.com",
+ messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+ appId: "YOUR_APP_ID"
+};
+
+let db = null;
+let auth = null;
+let firebaseReady = false;
+
+try {
+ const app = initializeApp(firebaseConfig);
+ db = getFirestore(app);
+ auth = getAuth(app);
+ firebaseReady = true;
+} catch(error) {
+ console.error("Firebase setup:",error);
+}
+
+
+const locations={
+ borg:{
+  title:"موقع برج العرب",
+  cars:[
+   ["8518","ك ج"],["1648","ك ك"],["745","ج ي ب"],
+   ["3987","أ ب م"],["6956","ع ج ن"],["1649","ك ك"],
+   ["3262","أ ل ط"],["671","ط ن ب"],["9841","غير موضح"],
+   ["5671","د ق ب"],["2927","أ ل ب"]
+  ],
+  trailers:[
+   ["6345","أ و ي"],["6157","ج ط ج"],["3186","ب م ر"],
+   ["3513","ع ج و"],["6548","أ و ي"],["3198","ب م ر"],
+   ["8579","أ ه ب"],["8634","أ ه ب"],["4581","غير موضح"],
+   ["5376","ر ط د"],["6492","أ و ي"]
+  ]
+ },
+ razzaq:{
+  title:"موقف الرزاق",
+  cars:[
+   ["7976","د س ن"],["3352","د ط ب"],["5465","د ج ع"],
+   ["1417","أ ل د"],["3578","أ د ن"],["3562","أ د ن"],
+   ["2712","أ ل ب"],["3567","أ د ن"]
+  ],
+  trailers:[
+   ["4614","د س أ"],["1569","د ه ي"],["3138","د ج و"],
+   ["9456","د أ ط"],["8549","أ ه ب"],["8639","أ ه ب"],
+   ["8534","أ ه ب"],["3214","ب م ر"]
+  ]
+ }
+};
+
+const categories=["التكاليف","الصيانة"];
+
+// كلمة مرور واجهة الإدارة فقط.
+// الحماية الحقيقية يجب أن تكون عبر Firebase Authentication.
+const ADMIN_PASSWORD="Wael@1212";
+
+let currentLocation="";
+let currentType="cars";
+let currentVehicle=null;
+let currentKey="";
+let currentRole="";
+let editingId=null;
+let recordsCache=[];
+let unsubscribeRecords=null;
+
+const $=id=>document.getElementById(id);
+
+function setStatus(message){
+ $("syncStatus").textContent=message;
+}
+
+function setPage(page){
+ ["home","vehiclesPage","recordsPage"].forEach(id=>{
+  $(id).classList.toggle("hidden",id!==page);
+ });
+}
+
+function openLocation(id){
+ currentLocation=id;
+ $("locationTitle").textContent=locations[id].title;
+ currentType="cars";
+
+ document.querySelectorAll(".tabs .tab").forEach((b,i)=>{
+  b.classList.toggle("active",i===0);
+ });
+
+ setPage("vehiclesPage");
+ renderVehicles();
+}
+
+window.openLocation=openLocation;
+
+function showVehicleType(type,button){
+ currentType=type;
+
+ document.querySelectorAll(".tabs .tab").forEach(b=>{
+  b.classList.remove("active");
+ });
+
+ button.classList.add("active");
+ renderVehicles();
+}
+
+window.showVehicleType=showVehicleType;
+
+function renderVehicles(){
+ const list=$("vehiclesList");
+ list.innerHTML="";
+
+ locations[currentLocation][currentType].forEach(vehicle=>{
+  const div=document.createElement("div");
+  div.className="vehicle";
+
+  const info=document.createElement("div");
+  info.innerHTML="<b></b><small></small>";
+
+  info.querySelector("b").textContent="رقم "+vehicle[0];
+  info.querySelector("small").textContent="الحروف: "+vehicle[1];
+
+  const btn=document.createElement("button");
+  btn.className="blue";
+  btn.textContent="الدخول";
+  btn.onclick=()=>chooseRole(vehicle);
+
+  div.append(info,btn);
+  list.appendChild(div);
+ });
+}
+
+function chooseRole(vehicle){
+ currentVehicle=vehicle;
+ currentKey=currentLocation+"_"+currentType+"_"+vehicle[0];
+
+ $("modalTitle").textContent="اختار طريقة الدخول";
+
+ $("modalContent").innerHTML=`
+  <div class="grid">
+   <button class="role" id="adminChoice">
+    <strong>الإدارة</strong>
+    <span class="muted">إضافة وتعديل وحذف السجلات</span>
+   </button>
+
+   <button class="role" id="monitorChoice">
+    <strong>المراقبة</strong>
+    <span class="muted">عرض السجلات المضافة فقط</span>
+   </button>
+  </div>`;
+
+ $("adminChoice").onclick=adminLogin;
+ $("monitorChoice").onclick=monitorLogin;
+
+ $("modalBg").classList.remove("hidden");
+}
+
+function adminLogin(){
+ $("modalTitle").textContent="تنبيه قبل دخول الإدارة";
+
+ $("modalContent").innerHTML=`
+  <div class="warning">
+   Important Notice:<br>
+   Please contact the administration to obtain the password prior to attempting login.
+  </div>
+
+  <label>كلمة المرور</label>
+  <input type="password" id="adminPass" placeholder="اكتب الباسورد">
+
+  <button class="dark" id="adminSubmit" style="width:100%;margin-top:8px">
+   دخول
+  </button>
+
+  <div id="passError" style="color:#d22;margin-top:10px;font-size:13px"></div>`;
+
+ $("adminSubmit").onclick=checkAdmin;
+}
+
+window.adminLogin=adminLogin;
+
+function checkAdmin(){
+ const pass=$("adminPass").value;
+
+ if(pass!==ADMIN_PASSWORD){
+  $("passError").textContent="كلمة المرور غير صحيحة";
+  return;
+ }
+
+ $("passError").textContent="";
+
+ // هذه النسخة لا تمنح صلاحية كتابة قاعدة البيانات
+ // إلا بعد إعداد Firebase Authentication.
+ currentRole="admin";
+ closeModal();
+
+ if(firebaseReady){
+  setStatus("يجب إكمال إعداد حساب الإدارة في Firebase");
+ }else{
+  setStatus("Firebase غير مضبوط بعد");
+ }
+
+ openRecords();
+}
+
+window.checkAdmin=checkAdmin;
+
+function monitorLogin(){
+ currentRole="monitor";
+ closeModal();
+ openRecords();
+}
+
+window.monitorLogin=monitorLogin;
+
+function closeModal(){
+ $("modalBg").classList.add("hidden");
+}
+
+window.closeModal=closeModal;
+
+function openRecords(){
+ editingId=null;
+
+ $("vehicleTitle").textContent=
+  (currentType==="cars"?"سيارة رقم ":"مقطورة رقم ")+currentVehicle[0];
+
+ $("vehicleSubtitle").textContent=
+  locations[currentLocation].title+" — "+currentVehicle[1];
+
+ $("adminTools").classList.toggle("hidden",currentRole!=="admin");
+
+ $("monitorEmpty").classList.add("hidden");
+ $("recordForm").reset();
+
+ $("date").value=new Date().toISOString().slice(0,10);
+ $("saveBtn").textContent="＋ إضافة سجل";
+ $("cancelEdit").classList.add("hidden");
+
+ setPage("recordsPage");
+ startListening();
+}
+
+function startListening(){
+ if(unsubscribeRecords){
+  unsubscribeRecords();
+  unsubscribeRecords=null;
+ }
+
+ if(!firebaseReady){
+  recordsCache=[];
+  renderRecords();
+  setStatus("بانتظار إعداد Firebase");
+  return;
+ }
+
+ // قراءة البيانات تحتاج تسجيل دخول وصلاحية Firestore.
+ // لا يتم اعتبار فشل الاتصال سجلاً فارغاً.
+ setStatus("جارٍ الاتصال بقاعدة البيانات...");
+
+ const ref=collection(db,"vehicles",currentKey,"records");
+
+ unsubscribeRecords=onSnapshot(ref,snapshot=>{
+  recordsCache=snapshot.docs.map(d=>({
+   id:d.id,
+   ...d.data()
+  }));
+
+  setStatus("متصل — البيانات محدثة");
+  renderRecords();
+
+ },error=>{
+  console.error(error);
+  setStatus("تعذر تحميل السجلات: تحقق من تسجيل الدخول والصلاحيات");
+ });
+}
+
+function renderRecords(){
+ const container=$("recordsContainer");
+ container.innerHTML="";
+
+ const records=recordsCache;
+
+ if(currentRole==="monitor"&&records.length===0){
+  $("monitorEmpty").classList.remove("hidden");
+  return;
+ }
+
+ $("monitorEmpty").classList.add("hidden");
+
+ categories.forEach(cat=>{
+  const rows=records.filter(r=>r.category===cat);
+
+  if(currentRole==="monitor"&&rows.length===0)return;
+
+  const title=document.createElement("div");
+  title.className="section-title";
+  title.textContent="سجل "+cat;
+  container.appendChild(title);
+
+  const wrap=document.createElement("div");
+  wrap.className="table-wrap";
+
+  const table=document.createElement("table");
+
+  table.innerHTML=`
+   <thead>
+    <tr>
+     <th>م</th>
+     <th>التاريخ</th>
+     <th>نوع العملية</th>
+     <th>المبلغ (جنيه)</th>
+     <th>البيان</th>
+     ${currentRole==="admin"?"<th>الإجراءات</th>":""}
+    </tr>
+   </thead>
+   <tbody></tbody>`;
+
+  const tbody=table.querySelector("tbody");
+
+  rows.forEach((r,index)=>{
+   const tr=document.createElement("tr");
+
+   [index+1,r.date,r.kind,r.amount||"—",r.details||"—"].forEach(value=>{
+    const td=document.createElement("td");
+    td.textContent=value;
+    tr.appendChild(td);
+   });
+
+   if(currentRole==="admin"){
+    const td=document.createElement("td");
+
+    const edit=document.createElement("button");
+    edit.className="blue";
+    edit.textContent="تعديل";
+    edit.onclick=()=>editRecord(r.id);
+
+    const del=document.createElement("button");
+    del.className="red";
+    del.style.marginRight="5px";
+    del.textContent="حذف";
+    del.onclick=()=>deleteRecord(r.id);
+
+    td.append(edit,del);
+    tr.appendChild(td);
+   }
+
+   tbody.appendChild(tr);
+  });
+
+  if(rows.length===0){
+   const tr=document.createElement("tr");
+   const td=document.createElement("td");
+
+   td.colSpan=currentRole==="admin"?6:5;
+   td.className="empty";
+   td.textContent="لا توجد سجلات في هذا القسم";
+
+   tr.appendChild(td);
+   tbody.appendChild(tr);
+  }
+
+  wrap.appendChild(table);
+  container.appendChild(wrap);
+ });
+}
+
+async function saveRecord(record){
+ if(!firebaseReady)throw new Error("Firebase غير مضبوط");
+
+ if(!auth.currentUser)throw new Error("يجب تسجيل الدخول إلى Firebase");
+
+ const ref=doc(db,"vehicles",currentKey,"records",record.id);
+
+ await setDoc(ref,{
+  category:record.category,
+  date:record.date,
+  kind:record.kind,
+  amount:record.amount,
+  details:record.details,
+  updatedAt:new Date().toISOString()
+ });
+}
+
+$("recordForm").addEventListener("submit",async function(e){
+ e.preventDefault();
+
+ if(currentRole!=="admin")return;
+
+ const record={
+  id:editingId||crypto.randomUUID(),
+  category:$("category").value,
+  date:$("date").value,
+  kind:$("kind").value.trim(),
+  amount:$("amount").value,
+  details:$("details").value.trim()
+ };
+
+ try{
+  await saveRecord(record);
+  cancelEditing();
+ }catch(error){
+  console.error(error);
+  alert("لم يتم الحفظ. تحقق من إعداد Firebase وصلاحيات الحساب.");
+ }
+});
+
+function editRecord(id){
+ if(currentRole!=="admin")return;
+
+ const record=recordsCache.find(r=>r.id===id);
+ if(!record)return;
+
+ editingId=id;
+
+ $("category").value=record.category;
+ $("date").value=record.date;
+ $("kind").value=record.kind;
+ $("amount").value=record.amount;
+ $("details").value=record.details;
+
+ $("saveBtn").textContent="حفظ التعديل";
+ $("cancelEdit").classList.remove("hidden");
+
+ $("adminTools").scrollIntoView({behavior:"smooth"});
+}
+
+window.editRecord=editRecord;
+
+async function deleteRecord(id){
+ if(currentRole!=="admin")return;
+
+ if(!confirm("هل أنت متأكد من حذف هذا السجل؟"))return;
+
+ try{
+  await deleteDoc(doc(db,"vehicles",currentKey,"records",id));
+ }catch(error){
+  console.error(error);
+  alert("تعذر الحذف. تحقق من اتصال Firebase وصلاحيات الحساب.");
+ }
+}
+
+window.deleteRecord=deleteRecord;
+
+function cancelEditing(){
+ editingId=null;
+ $("recordForm").reset();
+ $("date").value=new Date().toISOString().slice(0,10);
+ $("saveBtn").textContent="＋ إضافة سجل";
+ $("cancelEdit").classList.add("hidden");
+}
+
+window.cancelEditing=cancelEditing;
+
+function goBack(){
+ if(!$("recordsPage").classList.contains("hidden")){
+  if(unsubscribeRecords){
+   unsubscribeRecords();
+   unsubscribeRecords=null;
+  }
+  currentRole="";
+  setPage("vehiclesPage");
+ }else if(!$("vehiclesPage").classList.contains("hidden")){
+  setPage("home");
+ }else{
+  setPage("home");
+ }
+}
+
+window.goBack=goBack;
+
+$("date").value=new Date().toISOString().slice(0,10);
+
+</script>
+</body>
+</html>
